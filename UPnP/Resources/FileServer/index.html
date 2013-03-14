@@ -1,0 +1,318 @@
+<html>
+    <head>
+        <title>PS3 Mini Media Server File Manager</title>
+        <link rel="stylesheet" type="text/css" href="index.css" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+            <script type="text/javascript">
+                
+                // resets the upload status message bar 
+                function resetStatusMessage()
+                {
+                    var status = document.getElementById("uploadStatus");
+                    status.innerHTML = "Select file to upload";
+                }
+                
+                // returns the file extentsion 
+                var getFileExtension = function(filename) 
+                {
+                    return filename.split('.').pop();
+                }
+                
+                var mimeType;  // The content-type for the uploaded file
+                
+                // return true is the string is found within the array and sets the mimeType
+                var stringIsInArray = function(string, array, mimeTypes)
+                {
+                    for (var index = 0; index < array.length; index++) 
+                    {
+                        if ( array[index] == string.toLowerCase() ) 
+                        {  
+                            mimeType = mimeTypes[index];
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                
+                // checks if the file extension is a video file extension
+                var isVideoFile = function(extension)
+                {
+                    var videoExtensions = new Array("3gp", "asf", "avchd", "avi", "dat", "flv", "m1v", "m2v", "m4v", "mkv", "mov", "mpeg", "mpg", "mpe", "ogg", "rm", "swf", "wmv");
+                    var mimeTypes = new Array("video/mpeg", "video/mpeg", "video/mpeg", "video/mpeg", "video/mpeg", "video/mpeg", "video/mpeg", "video/mpeg", "video/mp4", "video/mpeg", "video/quicktime", "video/mpeg", "video/mpeg", "video/mpeg", "video/ogg", "video/mpeg", "video/mpeg", "video/x-ms-wmv");
+                    
+                    if( stringIsInArray(extension, videoExtensions, mimeTypes) )
+                    {
+                        return true;
+                    }
+                    return false;
+                };
+                
+                // checks if the file extension is an audio file extension
+                var isAudioFile = function(extension)
+                {
+                    var audioExtensions = new Array("aiff", "au", "cdda", "wav", "mp3", "flacc", "la", "pac", "m4a", "wma", "mp2", "speex", "aac", "ra", "vox", "voc", "asf");
+                    var mimeTypes = new Array("audio/L24", "audio/L24", "audio/mpeg", "audio/L24", "audio/mpeg", "audio/ogg", "audio/mpeg", "audio/mpeg", "audio/mp4", "audio/x-ms-wma", "audio/mpeg", "audio/ogg", "audio/mpeg", "audio/vnd.rn-realaudio", "audio/mpeg", "audio/mpeg", "audio/mpeg");
+                    
+                    if( stringIsInArray(extension, audioExtensions, mimeTypes) )
+                    {
+                        return true;
+                    }
+                    return false;
+                };
+                
+                // checks if the file extension is an image file extension
+                var isImageFile = function(extension)
+                {
+                    var imageExtensions = new Array("jpg", "bmp", "png", "gif", "ico", "jpeg", "raw", "tga", "tiff", "tif", "svg");   
+                    var mimeTypes = new Array("image/jpeg", "image/gif", "image/png", "image/gif", "image/vnd.microsoft.icon", "image/jpeg", "image/png", "image/tiff", "image/tiff", "image/tiff", "image/svg+xml"); 
+                    
+                    if( stringIsInArray(extension, imageExtensions, mimeTypes) )
+                    {
+                        return true;
+                    }
+                    return false;
+                };
+                
+
+                var request;  // The XMLHTTPRequest used for file uploading
+                var listRequest; // The XMLHTTPRequest used to update the file list
+                var updatedList = false;  // Needed because sometimes we get a request reponse multiple times
+                
+                // updates the list of files after an upload
+                var updateFileList = function()
+                {
+                    listRequest = new XMLHttpRequest();
+                    var url =  "?SERVER_ADDRESS?" + "updateFileList";
+                    listRequest.open("GET", url, true);
+                    listRequest.onreadystatechange = function()
+                    {
+                        // only if "OK"
+                        if (request.status == 200 || request.status == 201) 
+                        {
+                            var fileList = listRequest.responseText;
+                            if(!updatedList && (fileList.length>0))
+                            {
+                                updatedList = true;
+                                var fileListElement = document.getElementById("fileList");
+                                fileListElement.innerHTML = fileList;
+                            }
+                        }
+                    };
+                    listRequest.send();
+                }
+                
+                var fileReader;
+                var fileArray;
+                var progress;
+                var uploadURL;
+                var maxContentLength = 1048576*80;
+                
+                // Send the pieces of the file in chucks using 'Content-Length' header
+                var sendFilePiece = function(lastEndByte, contentLength)
+                {
+                    var startByteRange = lastEndByte+1;
+                    var endByteRange = startByteRange+maxContentLength;
+                    if(endByteRange > contentLength)
+                    {
+                        endByteRange = contentLength;
+                    }
+                    
+                    var contentSize = (endByteRange-startByteRange)+1;
+                    var ui8arrayPiece = new Uint8Array(contentSize);
+                    var offset = startByteRange-1;
+                    var contentByte = 0;
+                    
+                    for(offset, contentByte = 0 ; contentByte < contentSize ; offset++, contentByte++)
+                    {
+                        ui8arrayPiece[contentByte] = fileArray[offset];
+                    }
+                    
+                    var bb = new (window.WebKitBlobBuilder || window.BlobBuilder || window.MozBlobBuilder)();
+                    bb.append(ui8arrayPiece.buffer);
+                    
+                    request = new XMLHttpRequest();
+                    request.open("PUT", uploadURL, false);
+                    
+                    if (request.upload && request.upload.addEventListener) 
+                    {
+                        request.upload.addEventListener('progress', function (event) {
+                                                        if (event.lengthComputable) 
+                                                        {
+                                                            var percent = (100 * ((lastEndByte+event.loaded) / contentLength));
+                                                            progress.style.width = Math.round(percent) + '%';
+                                                            progress.innerHTML = Math.round(percent) + '%';
+                                                        } }, false);
+                    }                                
+                    else
+                    {
+                        progress.style.width = '0%';
+                        progress.innerHTML = '0%';
+                    }
+                    
+                    var contentRange = "bytes "+startByteRange+"-"+endByteRange+"/"+contentLength;
+                    
+                    request.onreadystatechange = function () {
+                        // only if req shows "loaded"
+                        if (request.readyState == 4) 
+                        {
+                            // only if "OK"
+                            if (request.status == 200 || request.status == 201) 
+                            {
+                                if(endByteRange < contentLength)
+                                {
+                                    var percent = (100 * (endByteRange / contentLength));
+                                    progress.style.width = Math.round(percent)+'%';
+                                    progress.innerHTML = Math.round(percent)+'%';
+                                    
+                                    setTimeout("sendFilePiece("+endByteRange+","+contentLength+");", 200);
+                                    return;
+                                }
+                                
+                                var status = document.getElementById("uploadStatus");
+                                status.innerHTML = "File uploaded...";
+                                progress.style.width = '100%';
+                                progress.innerHTML = '100%';
+                                setTimeout ( "resetStatusMessage()", 2000 );
+                                setTimeout ( "document.getElementById('progress_bar').className = '';", 2000 );
+                                updatedList = false;
+                                updateFileList();
+                            }
+                            else 
+                            {
+                                alert("There was a problem retrieving and processing the file.\n" +
+                                      request.statusText);
+                            }
+                        }
+                    }
+                    request.setRequestHeader( "Content-Type", mimeType );
+                    request.setRequestHeader( "Content-Range", contentRange); 
+                    request.setRequestHeader( "Content-Length", contentLength); 
+                    try
+                    {
+                        request.send(bb.getBlob());
+                    }
+                    catch (ex)
+                    {
+                        alert('This browser does not implement the XMLHttpRequest.send(ArrayBuffer) method'+ex.description);
+                        return;
+                    }
+                }
+                
+                // called when the file to upload is read and ready to be uploaded
+                var fileReadFinished = function(event) 
+                {
+                    var extension = getFileExtension(event.target.filename);
+                    progress.style.width = '100%';
+                    progress.innerHTML = '100%';
+                    
+                    var directory;
+                    mimeType = "text/html";
+                    
+                    // check the type of file so we know what directory to upload it into
+                    if( isVideoFile(extension) )
+                    {
+                        // store file in the shared video directory
+                        directory = "Video/";
+                    }
+                    else if (isAudioFile(extension) )
+                    {
+                        // store file in the shared audio directory
+                        directory = "Music/";
+                    }
+                    else if ( isImageFile(extension) )
+                    {
+                        // store file in the shared image directory
+                        directory = "Pictures/";
+                    }
+                    else
+                    {
+                        // we don't know what it is so store it in the "other" directory
+                         directory = "Other/";
+                    }
+                    
+                    var status = document.getElementById("uploadStatus");
+                    status.innerHTML = "Uploading file...";
+                    progress.style.width = '0%';
+                    progress.innerHTML = '0%';
+                    
+                    // convert file from string to array buffer
+                    fileArray = new Uint8Array(event.target.result);
+                    var contentLength = fileReader.result.byteLength;
+                    
+                    uploadURL = "?SERVER_ADDRESS?" + directory + event.target.filename;
+                    setTimeout( "sendFilePiece(0, "+contentLength+");", 500 );
+                }
+
+                var upload = function() 
+                {
+                    // Check for the various File API support.
+                    if (window.File && window.FileReader) 
+                    {
+                        // Great success! All the File APIs are supported.
+                    } 
+                    else 
+                    {
+                        alert('You must use an HTML5 compatible browser to upload files like Google Chrome 6+, Firefox 7+, Safari 6+, or IE 10+. If you don\'t want to download a newer browser you can always manage your files directly from iTunes.  Just drop the your files in the corresponding Video/Music/Pictures/Other directories.');
+                        return false;
+                    }
+                    
+                    var fileProperty = document.getElementById("fileToUpload");
+                    
+                    if(fileProperty.files.length == 0) return false;
+                    
+                    // the file is the first element in the files property
+                    var file = fileProperty.files[0];
+               
+                    var status = document.getElementById("uploadStatus");
+                    status.innerHTML = "Reading file...";
+                    
+                    fileReader = new FileReader();
+                    fileReader.onload = fileReadFinished;
+                    progress = document.querySelector('.percent');
+                    document.getElementById("progress_bar").className += " loading";
+                    fileReader.onprogress = function(event) 
+                    {
+                        if (event.lengthComputable) 
+                        {
+                            var percent = 100 * event.loaded / event.total;
+                            progress.style.width = Math.round(percent) + '%';
+                            progress.innerHTML = Math.round(percent) + '%';
+                        }
+                    }
+                    fileReader.context = this;
+                    fileReader.filename = file.name;
+                    if(!fileReader.readAsArrayBuffer)
+                    {
+                        alert('You must use an HTML5 compatible browser to upload files like Google Chrome 6+, Firefox 7+, Safari 6+, or IE 10+. If you don\'t want to download a newer browser you can always manage your files directly from iTunes.  Just drop the your files in the corresponding Video/Music/Pictures/Other directories.');
+                        return;
+                    }
+                    fileReader.readAsArrayBuffer(file);
+                    
+                    return false;
+                };
+                
+                </script>
+    </head>
+    <body>
+        
+        <div class="centerContent">
+                <div class='logo'></div>
+                <form action="/" method="post" onsubmit="return upload();">
+            
+                    <div id="uploadStatus" class="uploadStatus">Select file to upload</div>
+                    <div id="progress_bar">
+                        <div class="percent">0%</div>
+                    </div>
+   
+
+                    <fieldset>
+                        <input class="filePicker" type="file" name="fileToUpload" id="fileToUpload">
+                        <input class="uploadButton minimal" type="submit" value="Upload">
+                    </fieldset>
+                </form>
+            <div id="fileList">
+                ?FILE_LIST?
+            </div>
+        </div>
+    </body>
+</html>
