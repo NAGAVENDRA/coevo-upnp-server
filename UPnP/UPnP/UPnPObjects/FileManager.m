@@ -202,6 +202,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
         // Now get the list of children objects/containers in the folder
         *returnCount = 0;
         int startingIndex = offset;
+        
         if (startingIndex < folder.subfolders.count)
         {
             for (int itemIndex = startingIndex; (itemIndex < folder.subfolders.count); itemIndex++) 
@@ -221,10 +222,10 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
             startingIndex = startingIndex - (folder.subfolders.count-1);
         }
         
-        if (startingIndex < 0) 
-        {
+//        if (startingIndex < 0) 
+//        {
             startingIndex = 0;
-        }
+//        }
         
         if ((*returnCount) == requestedCount)
         {
