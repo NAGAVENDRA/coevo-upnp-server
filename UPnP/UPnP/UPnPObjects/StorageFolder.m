@@ -93,9 +93,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
 //        DDLogError(@"Received error while attempt to find files at relative path: %@", self.relativePath);
 //        return;
 //    }
-    
-    NSLog(@"files = %@", files);
-    
+        
     for (NSString *file in files) 
     {
         NSString *fullPath = [self.relativePath stringByAppendingPathComponent:file];
@@ -114,6 +112,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
             StorageFolder *subfolder = [[StorageFolder alloc] initObjectFromDictionary:
                                         [NSDictionary dictionaryWithObjectsAndKeys:
                                          self.id, @"parentId",
+                                         self, @"parent",
                                          [NSNumber numberWithBool:self.isSearchable], @"isSearchable",
                                          [NSNumber numberWithBool:self.isRestricted], @"isRestricted", 
                                          [NSNumber numberWithInt:files.count], @"childCount", 
@@ -130,11 +129,11 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
             NSObject *item;
             
             BOOL isItem = YES;
-            
             if ([VideoItem isVideoItem:extension]) {
                 item = [[Movie alloc] initObjectFromDictionary:
                         [NSDictionary dictionaryWithObjectsAndKeys:
                         self.id, @"parentId",
+                        self, @"parent",
                         file, @"title",
                         [NSNumber numberWithBool:self.isRestricted], @"isRestricted", nil]];
                 
@@ -144,6 +143,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
                 item = [[MusicTrack alloc] initObjectFromDictionary:
                         [NSDictionary dictionaryWithObjectsAndKeys:
                          self.id, @"parentId",
+                         self, @"parent",
                          file, @"title",
                          [NSNumber numberWithBool:self.isRestricted], @"isRestricted", nil]];
                 
@@ -174,6 +174,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
                 item = [[Photo alloc] initObjectFromDictionary:
                         [NSDictionary dictionaryWithObjectsAndKeys:
                         self.id, @"parentId",
+                        self, @"parent",
                         file, @"title",
                         [NSNumber numberWithBool:self.isRestricted], @"isRestricted", nil]];
                 
@@ -188,14 +189,6 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
             }
             
         }
-    }
-    NSLog(@"======================");
-    NSLog(@"self = %@", self.title);
-    for (StorageFolder *sf in self.subfolders) {
-        NSLog(@"folder = %@", sf.title);
-    }
-    for (ImageItem *item in self.items) {
-        NSLog(@"item = %@", item.title);
     }
 }
 

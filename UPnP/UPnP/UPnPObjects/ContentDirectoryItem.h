@@ -11,6 +11,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ContentDirectoryObject.h"
+#import "FileServer.h"
 
 @interface ContentDirectoryItem : ContentDirectoryObject
 {

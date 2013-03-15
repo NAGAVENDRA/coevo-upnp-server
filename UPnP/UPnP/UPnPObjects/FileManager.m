@@ -101,6 +101,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
     _baseDirectory = [[StorageFolder alloc] initObjectFromDictionary:
                       [NSDictionary dictionaryWithObjectsAndKeys:
                        @"-1", @"parentId",
+                       self, @"parent",
                        [NSNumber numberWithBool:searchSupported], @"isSearchable",
                        [NSNumber numberWithBool:YES], @"isRestricted",
                        [NSNumber numberWithInt:directories], @"childCount",
@@ -121,7 +122,7 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
 
 - (StorageFolder *)folderWithObjectID:(NSString *)objectID
 {
-    NSLog(@"folderWithObjectID = %@", objectID);
+    NSLog(@"folderWithObjectID = %@", objectID);    
     if ([_baseDirectory.id isEqualToString:objectID]) 
     {
         return _baseDirectory;
@@ -135,7 +136,6 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
     for (StorageFolder *subfolder in storageFolder.subfolders)
     {
         if ([subfolder.id isEqualToString:objectID]) {
-            NSLog(@"title = %@, objectID = %@, subcount = %d", subfolder.title, objectID, subfolder.subfolders.count);
             return subfolder;
         }
         
@@ -219,27 +219,6 @@ static const int ddLogLevel = LOG_LEVEL_WARN;
         else
         {
             startingIndex = startingIndex - (folder.subfolders.count-1);
-        }
-        
-        NSLog(@"2222222 %d", folder.items.count);
-        if (startingIndex < folder.items.count)
-        {
-            for (int itemIndex = startingIndex; (itemIndex < folder.items.count); itemIndex++)
-            {
-                ContentDirectoryItem *subitems = [folder.items objectAtIndex:itemIndex];
-                NSLog(@"1111111");
-                [returnString appendString:[NSString stringWithFormat:@"<item id=\"%@\" parentID=\"%@\" restricted=\"1\"><dc:title>%@</dc:title><upnp:class>object.item.imageItem.photo</upnp:class><upnp:album>%@</upnp:album><dc:date>2011-09-08T20:25:29</dc:date><res protocolInfo=\"http-get:*:image/jpeg:*\" resolution=\"640x478\">http://200.200.200.50:50002/bp/NDLNA/2987.jpg</res></item>", subitems.id, subitems.parentId, subitems.title, @"KLKL"]];
-                (*returnCount)++;
-                
-                if ((*returnCount) == requestedCount)
-                {
-                    break;
-                }
-            }
-        }
-        else
-        {
-            startingIndex = startingIndex - (folder.items.count-1);
         }
         
         if (startingIndex < 0) 

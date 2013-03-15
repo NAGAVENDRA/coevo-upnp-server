@@ -43,6 +43,7 @@ typedef enum {
 // id property of object’s parent. The parentID of the Content Directory ‘root’ container must be set to the reserved
 // value of “-1”. No other parentID attribute of any other Content Directory object may take this value.
 @property (nonatomic, retain) NSString *parentId;
+@property (nonatomic, retain) ContentDirectoryObject *parent;
 
 // The object name
 @property (nonatomic, retain) NSString *title;
@@ -61,10 +62,14 @@ typedef enum {
 // given object. Ability of a Control Point to change writeStatus of a given resource(s) is implementation dependent.
 @property (nonatomic) write_status writeStatus;
 
+@property (nonatomic, retain) NSString *objectClass;
+
 // Init with the a dictionary full of key-value pairs for the properties.
 - (id)initObjectFromDictionary:(NSDictionary *)dictionary;
 
 // Returns the XML representation of object would should be sent back to the client.
 - (NSString *)xmlRepresentation:(NSString *)childElement;
+
+-(NSString *) getFullPath;
 
 @end

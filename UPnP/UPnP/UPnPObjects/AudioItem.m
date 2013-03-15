@@ -26,10 +26,6 @@ static NSArray *audioTypes = nil;
     self = [super init];
     if (self) 
     {
-        if (!audioTypes) 
-        {
-            audioTypes = [[NSArray alloc] initWithObjects:@"aiff", @"au", @"cdda", @"wav", @"mp3", @"flacc", @"la", @"pac", @"m4a", @"wma", @"mp2", @"speex", @"aac", @"ra", @"vox", @"voc", @"asf", nil];
-        }
         [self setValuesForKeysWithDictionary:dictionary];
     }
     
@@ -58,6 +54,10 @@ static NSArray *audioTypes = nil;
 
 + (BOOL)isAudioItem:(NSString *)filename
 {
+    if (!audioTypes)
+    {
+        audioTypes = [[NSArray alloc] initWithObjects:@"aiff", @"au", @"cdda", @"wav", @"mp3", @"flacc", @"la", @"pac", @"m4a", @"wma", @"mp2", @"speex", @"aac", @"ra", @"vox", @"voc", @"asf", nil];
+    }
     return [audioTypes containsString:[filename lowercaseString]];
 }
 

@@ -29,10 +29,6 @@ static NSArray *videoTypes = nil;
     self = [super init];
     if (self) 
     {
-        if(!videoTypes)
-        {
-            videoTypes = [[NSArray alloc] initWithObjects:@"3gp", @"asf", @"avchd", @"avi", @"dat", @"flv", @"m1v", @"m2v", @"m4v", @"mkv", @"mov", @"mpeg", @"mpg", @"mpe", @"ogg", @"rm", @"swf", @"wmv", nil];
-        }
         [self setValuesForKeysWithDictionary:dictionary];
     }
     
@@ -63,6 +59,10 @@ static NSArray *videoTypes = nil;
 
 + (BOOL)isVideoItem:(NSString *)filename
 {
+    if(!videoTypes)
+    {
+        videoTypes = [[NSArray alloc] initWithObjects:@"3gp", @"asf", @"avchd", @"avi", @"dat", @"flv", @"m1v", @"m2v", @"m4v", @"mkv", @"mov", @"mpeg", @"mpg", @"mpe", @"ogg", @"rm", @"swf", @"wmv", @"mp4", nil];
+    }
     return [videoTypes containsString:[filename lowercaseString]];
 }
 

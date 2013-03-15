@@ -27,10 +27,6 @@ static NSArray *imageTypes = nil;
     self = [super init];
     if (self) 
     {
-        if (!imageTypes) 
-        {
-            imageTypes = [[NSArray alloc] initWithObjects:@"jpg", @"bmp", @"png", @"gif", @"ico", @"jpeg", @"raw", @"tga", @"tiff", @"tif", @"svg", nil];
-        }
         [self setValuesForKeysWithDictionary:dictionary];
     }
     
@@ -58,6 +54,11 @@ static NSArray *imageTypes = nil;
 
 + (BOOL)isImageItem:(NSString *)filename
 {
+    if (!imageTypes)
+    {
+        imageTypes = [[NSArray alloc] initWithObjects:@"jpg", @"bmp", @"png", @"gif", @"ico", @"jpeg", @"raw", @"tga", @"tiff", @"tif", @"svg", nil];
+    }
+    
     return [imageTypes containsString:[filename lowercaseString]];
 }
 

@@ -11,11 +11,13 @@
 
 @synthesize id = _id;
 @synthesize parentId = _parentId;
+@synthesize parent = _parent;
 @synthesize title = _title;
 @synthesize creator = _creator;
 @synthesize resourceURI = _resourceURI;
 @synthesize isRestricted = _isRestricted;
 @synthesize writeStatus = _writeStatus;
+@synthesize objectClass = _objectClass;
 
 - (id)initObjectFromDictionary:(NSDictionary *)dictionary
 {
@@ -47,10 +49,37 @@
     return _id;
 }
 
+-(NSString *) getFullPath
+{
+    ContentDirectoryObject *current;
+    NSMutableArray *parents = [NSMutableArray new];
+    current = self;
+    while (YES) {
+        NSLog(@"ppp  %@", current.title);
+        if ([current.id isEqualToString:@"0"]) {
+            break;
+        }
+        current = current.parent;
+        [parents addObject:current];
+    }
+    
+    NSString *result = @"";
+    for (ContentDirectoryObject *p in parents) {
+        NSString *title = @"";
+        if (![p.title isEqualToString:@"Media"]) {
+            title = p.title;
+        }
+        result = [NSString stringWithFormat:@"%@/%@", title, result];
+    }
+    
+    return [NSString stringWithFormat:@"%@%@", result, self.title];
+}
+
 - (void)dealloc
 {
     self.id = nil;
     self.parentId = nil;
+    self.parent = nil;
     self.title = nil;
     self.creator = nil;
     self.resourceURI = nil;

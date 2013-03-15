@@ -24,6 +24,7 @@
         self.title = [dictionary objectForKey:@"title"];
         self.isSearchable = [[dictionary objectForKey:@"isSearchable"] boolValue];
         self.parentId = [dictionary objectForKey:@"parentId"];
+        self.parent = [dictionary objectForKey:@"parent"];
     }
     
     return self;
